@@ -121,6 +121,7 @@ Had to visit the docs afew times for this one:
 ```python 
 import socket
 import hashlib
+import sys
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import (
     Cipher, algorithms, modes
@@ -138,10 +139,10 @@ def Main():
 
     #Get initial message
     s.sendto(b"hello", server)
-    print(recv())
+    print(recv(s))
     #Get the rest of the information
     s.sendto(b"ready", server)
-    data = recv()
+    data = recv(s)
     print(data)
     checksum = data[104:136].hex() #Convert to hex to make comparison easier
 
@@ -149,10 +150,10 @@ def Main():
     while True:
         #Get the cipher text
         s.sendto(b"final", server)
-        cText = bytes(recv())
+        cText = bytes(recv(s))
         #Get the tag
         s.sendto(b"final", server)
-        tag = bytes(recv())
+        tag = bytes(recv(s))
         #Decrypt
         pText = decrypt(key, iv, cText, tag)
         #Compare
@@ -162,7 +163,7 @@ def Main():
             print(f"The flag is: {pText}")
             break
 
-def recv():
+def recv(s):
     try:
         data = s.recv(1024)
         return data
