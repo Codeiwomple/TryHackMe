@@ -1,4 +1,4 @@
-##Task 1: Base64
+### Task 1: Base64
 
 Pretty straigt forward fist task:
 - Read the file in `msg` variable
@@ -18,7 +18,7 @@ for _ in range(50):
 print(f"The flag is: {msg.decode('utf8')}")
 ```
 
-##Task 2: Gotta Catch em All 
+### Task 2: Gotta Catch em All 
 
 For me this was the most time consuming. The hardest part was getting the data in a usable format:
 - Attempt to connect to the server until the port is live
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
 Run with `python3 webClient.py <ip>
 
-## Task 3: Encrypted Server Chit Chat 
+### Task 3: Encrypted Server Chit Chat 
 
 Had to visit the docs afew times for this one:
 - Connect to server via UDP to get the initial instructions
