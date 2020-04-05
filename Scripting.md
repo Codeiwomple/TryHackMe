@@ -103,7 +103,7 @@ if __name__ == '__main__':
     Main()
 ```
 
-Run with `python3 webClient.py <ip>
+Run with `python3 webClient.py <ip>`
 
 ### Task 3: Encrypted Server Chit Chat 
 
