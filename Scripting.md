@@ -1,10 +1,9 @@
-## Python scripting challange from tryhacme.com 
+## Python scripting challenge from tryhackme.com 
 Found here: https://tryhackme.com/room/scripting
-
 
 ### Task 1: Base64
 
-Pretty straigt forward fist task:
+Pretty straight forward fist task:
 - Read the file in `msg` variable
 - Decode 50 times with a basic `for` loop
 
@@ -27,7 +26,7 @@ print(f"The flag is: {msg.decode('utf8')}")
 For me this was the most time consuming. The hardest part was getting the data in a usable format:
 - Attempt to connect to the server until the port is live
 - Once connected, request the data, in this case operation, number, next port 
-- Recieve the data and assign it so we can use it
+- Receive the data and assign it so we can use it
 - Perform the operation 
 - Move onto next port
 - Repeat this until we hit port 9867
@@ -68,7 +67,7 @@ def Main():
             op, newNum, nextPort = assignData(data)
             #Perform given calculations
             oldNum = doMath(op, oldNum, newNum)
-            #Display ouput and move on
+            #Display output and move on
             print(f"Current number is {oldNum}, moving onto port {nextPort}")
             serverPort = nextPort
 
@@ -111,13 +110,13 @@ Run with `python3 webClient.py <ip>`
 
 ### Task 3: Encrypted Server Chit Chat 
 
-Had to visit the docs afew times for this one:
+Had to visit the docs a few times for this one:
 - Connect to server via UDP to get the initial instructions
-- Connect again to recieve the next set 
+- Connect again to receive the next set 
 - Store key and iv (Hard coded for ease)
 - Convert the checksum into a more usable/ readable format 
 
-- Connect agin, and recieve AES CGM cipher text and tags
+- Connect agin, and receive AES CGM cipher text and tags
 - Decrypt 
 - Hash the plain text and compare it to the given checksum
 - Repeat this until a match is found
