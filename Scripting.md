@@ -111,75 +111,59 @@ Run with `python3 webClient.py <ip>`
 ### Task 3: Encrypted Server Chit Chat 
 
 Had to visit the docs a few times for this one:
-- Connect to server via UDP to get the initial instructions
-- Connect again to receive the next set 
-- Store key and iv (Hard coded for ease)
-- Convert the checksum into a more usable/ readable format 
-
-- Connect agin, and receive AES CGM cipher text and tags
-- Decrypt 
-- Hash the plain text and compare it to the given checksum
-- Repeat this until a match is found
+- Connect to server via UDP with `"hello"` payload to get the initial instructions.
+- Connect again to receive the next set but with `"ready"` payload.
+- Store key and iv (Hard coded for ease).
+- Connect agin, and receive AES CGM cipher text and tags but with `"final"` payload.
+- Decrypt.
+- Hash the plain text and compare it to the given checksum.
+- Repeat this until a match is found.
 
 ```python 
-import socket
-import hashlib
-import sys
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.ciphers import (
-    Cipher, algorithms, modes
-)
+#!/usr/bin/env python3
+import socket, sys
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives import hashes
 
-def Main():
-    host = sys.argv[1] #Get ip from user input
-    port = 4000
-    server = (host, port)
-    iv = b'secureivl337' #Hardcoded for ease
-    key = b'thisisaverysecretkeyl337'
+HOST = sys.argv[1]  # UDP server IP
+PORT = 4000  # UDP server port
+BUFFER_SIZE = 2048
 
-    #Create socket *No need to connect as using UDP
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    #Get initial message
-    s.sendto(b"hello", server)
-    print(recv(s))
-    #Get the rest of the information
-    s.sendto(b"ready", server)
-    data = recv(s)
-    print(data)
-    checksum = data[104:136].hex() #Convert to hex to make comparison easier
+def handle_UDP_conn(udp_sock, udp_payload):
+    udp_sock.sendto(udp_payload, (HOST, PORT))
+    (recvd_data, server_addr) = udp_sock.recvfrom(BUFFER_SIZE)
+    return recvd_data
 
-    #Loop flags until checksums match
-    while True:
-        #Get the cipher text
-        s.sendto(b"final", server)
-        cText = bytes(recv(s))
-        #Get the tag
-        s.sendto(b"final", server)
-        tag = bytes(recv(s))
-        #Decrypt
-        pText = decrypt(key, iv, cText, tag)
-        #Compare
-        if hashlib.sha256(pText).hexdigest() != checksum:
-            continue
-        else:
-            print(f"The flag is: {pText}")
-            break
 
-def recv(s):
-    try:
-        data = s.recv(1024)
-        return data
-    except Exception as e:
-        print(str(e))
+def main():
+    with socket.socket(type=socket.SOCK_DGRAM) as s:
+        recvd_data = handle_UDP_conn(s, b"hello")
+        recvd_data = handle_UDP_conn(s, b"ready")
+        server_response = recvd_data.split(b" ")
+        key = server_response[0].split(b":")[1]
+        iv = server_response[1].split(b":")[1]
+        flag_checksum = server_response[14]
 
-def decrypt(key, iv, cText, tag):
-    #Create AES GCM decryptor object
-    decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag),
-    backend = default_backend()).decryptor()
-    #Return decrypted text
-    return decryptor.update(cText) + decryptor.finalize()
+        cipher = AESGCM(key)
+        while True:
+            cipher_text = handle_UDP_conn(s, b"final")
+            tag = handle_UDP_conn(s, b"final")
+            cipher_text += tag
+            plain_text_flag = cipher.decrypt(iv, cipher_text, None)
 
-if __name__ == '__main__':
-    Main()
+            hash_obj = hashes.Hash(hashes.SHA256())
+            hash_obj.update(plain_text_flag)
+            if hash_obj.finalize() == flag_checksum:
+                print(f"Target Flag: {plain_text_flag}")
+                break
+
+
+if __name__ == "__main__":
+    main()
+
+```
+Run like so:
+```sh
+chmod +x udpClient.py && ./udpClient.py <ip>
 ```
